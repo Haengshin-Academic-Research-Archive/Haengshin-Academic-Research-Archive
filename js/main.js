@@ -3,33 +3,48 @@ const container = document.getElementById("main-content");
 // 분류(폴더명과 동일)
 const subjects = ["물리", "화학", "생명", "지구", "융합", "인문-사회"];
 
-async function loadManifest(path = "manifest.json") {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`manifest 로드 실패: ${res.status}`);
-  return res.json();
-}
-
 (async () => {
-  const papers = await loadManifest();
+  try {
+    const manifest = await loadManifest();
 
-  subjects.forEach(subject => {
-    const section = document.createElement("section");
-    section.innerHTML = `<h2>${subject}</h2><ul></ul>`;
-    const ul = section.querySelector("ul");
+    // manifest의 meta를 실제로 읽어 title/abstract를 채움
+    const papers = await Promise.all(
+      manifest.map(async (m) => {
+        const meta = await loadPaperTxt(m.meta, m.id);
+        return {
+          id: m.id,
+          subject: m.subject || meta.subject,
+          title: meta.title,
+          abstract: meta.abstract,
+          pdf: m.pdf,
+          metaPath: m.meta
+        };
+      })
+    );
 
-    papers
-      .filter(p => p.subject === subject)
-      .forEach(p => {
-        const li = document.createElement("li");
-        // paper.html에서 id로 찾아서 meta/paper 경로를 쓰게끔
-        li.innerHTML = `<a href="paper.html?id=${encodeURIComponent(p.id)}">${p.title}</a>`;
-        ul.appendChild(li);
-      });
+    subjects.forEach((subject) => {
+      const section = document.createElement("section");
+      section.innerHTML = `<h2>${subject}</h2><ul></ul>`;
+      const ul = section.querySelector("ul");
 
-    // 해당 분류에 글이 없으면 섹션 숨기고 싶으면 아래 주석 해제
-    // if (!ul.children.length) return;
+      papers
+        .filter((p) => p.subject === subject)
+        .forEach((p) => {
+          const li = document.createElement("li");
+          li.innerHTML = `<a href="paper.html?id=${encodeURIComponent(p.id)}">${p.title}</a>`;
+          ul.appendChild(li);
+        });
 
-    container.appendChild(section);
-  });
+      // 글 없는 분류 숨기려면 주석 해제
+      // if (!ul.children.length) return;
+
+      container.appendChild(section);
+    });
+  } catch (err) {
+    container.innerHTML = `<p>오류: ${err.message}</p>
+      <p>※ 로컬에서 file://로 열면 fetch가 막힙니다. 반드시 로컬 서버로 실행하세요.</p>`;
+    console.error(err);
+  }
 })();
+
 
