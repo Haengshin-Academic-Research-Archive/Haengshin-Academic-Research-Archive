@@ -1,19 +1,16 @@
 const container = document.getElementById("main-content");
 
-// 저장 순서 = 배열 순서
-const paperFiles = [
-  { id: 1, path: "papers/physics/001.txt" },
-  { id: 2, path: "papers/physics/002.txt" },
-  { id: 3, path: "papers/chemistry/003.txt" }
-];
+// 분류(폴더명과 동일)
+const subjects = ["물리", "화학", "생명", "지구", "융합", "인문-사회"];
 
-const subjects = ["물리", "화학", "생명", "지구과학"];
+async function loadManifest(path = "manifest.json") {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`manifest 로드 실패: ${res.status}`);
+  return res.json();
+}
 
 (async () => {
-  const papers = [];
-  for (const file of paperFiles) {
-    papers.push(await loadPaperTxt(file.path, file.id));
-  }
+  const papers = await loadManifest();
 
   subjects.forEach(subject => {
     const section = document.createElement("section");
@@ -24,10 +21,15 @@ const subjects = ["물리", "화학", "생명", "지구과학"];
       .filter(p => p.subject === subject)
       .forEach(p => {
         const li = document.createElement("li");
-        li.innerHTML = `<a href="paper.html?id=${p.id}">${p.title}</a>`;
+        // paper.html에서 id로 찾아서 meta/paper 경로를 쓰게끔
+        li.innerHTML = `<a href="paper.html?id=${encodeURIComponent(p.id)}">${p.title}</a>`;
         ul.appendChild(li);
       });
+
+    // 해당 분류에 글이 없으면 섹션 숨기고 싶으면 아래 주석 해제
+    // if (!ul.children.length) return;
 
     container.appendChild(section);
   });
 })();
+
