@@ -1,54 +1,29 @@
+// js/random.js
+import { loadMetaTxt, metaToPdfPath } from "./loader.js";
+import { PAPER_META_FILES } from "./papers.js";
+
 const container = document.getElementById("random-container");
 
-let manifest = [];
-let isLoading = false;
+async function loadRandomOne() {
+  const metaPath = PAPER_META_FILES[Math.floor(Math.random() * PAPER_META_FILES.length)];
+  const meta = await loadMetaTxt(metaPath);
+  const pdfPath = metaToPdfPath(metaPath);
 
-function pickRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+  const div = document.createElement("div");
+  div.className = "paper";
+  div.innerHTML = `
+    <h3>${meta.title}</h3>
+    <div class="meta">${meta.subject}</div>
+    <p>${meta.abstract}</p>
+    <a href="${encodeURI(pdfPath)}" target="_blank" rel="noopener">PDF</a>
+  `;
+  container.appendChild(div);
 }
 
-async function loadRandomOnce() {
-  if (isLoading) return;
-  isLoading = true;
+for (let i = 0; i < 3; i++) loadRandomOne();
 
-  try {
-    const item = pickRandom(manifest);
-    if (!item) return;
-
-    const meta = await loadPaperTxt(item.meta, item.id);
-
-    const div = document.createElement("div");
-    div.className = "paper";
-    div.innerHTML = `
-      <h3><a href="paper.html?id=${encodeURIComponent(item.id)}">${meta.title}</a></h3>
-      <div class="meta">구분: ${item.subject || meta.subject}</div>
-      <p style="white-space: pre-wrap;">${meta.abstract}</p>
-      <a href="${item.pdf}" target="_blank" rel="noopener">PDF</a>
-    `;
-    container.appendChild(div);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    isLoading = false;
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+    loadRandomOne();
   }
-}
-
-(async () => {
-  try {
-    manifest = await loadManifest();
-
-    // 처음 3개 로드
-    for (let i = 0; i < 3; i++) await loadRandomOnce();
-
-    // 무한 스크롤
-    window.addEventListener("scroll", async () => {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 120) {
-        await loadRandomOnce();
-      }
-    });
-  } catch (err) {
-    container.innerHTML = `<p>오류: ${err.message}</p>
-      <p>※ 로컬에서 file://로 열면 fetch가 막힙니다. 반드시 로컬 서버로 실행하세요.</p>`;
-    console.error(err);
-  }
-})();
+});
