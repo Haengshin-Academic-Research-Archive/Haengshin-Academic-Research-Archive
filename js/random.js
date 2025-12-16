@@ -1,30 +1,54 @@
 const container = document.getElementById("random-container");
 
-const paperFiles = [
-  { id: 1, path: "papers/physics/001.txt" },
-  { id: 2, path: "papers/physics/002.txt" },
-  { id: 3, path: "papers/chemistry/003.txt" }
-];
+let manifest = [];
+let isLoading = false;
 
-async function loadRandom() {
-  const file = paperFiles[Math.floor(Math.random() * paperFiles.length)];
-  const paper = await loadPaperTxt(file.path, file.id);
-
-  const div = document.createElement("div");
-  div.className = "paper";
-  div.innerHTML = `
-    <h3>${paper.title}</h3>
-    <div class="meta">${paper.subject} | ${paper.category}</div>
-    <p>${paper.abstract}</p>
-    <a href="${paper.pdf}" target="_blank">PDF</a>
-  `;
-  container.appendChild(div);
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
-for (let i = 0; i < 3; i++) loadRandom();
+async function loadRandomOnce() {
+  if (isLoading) return;
+  isLoading = true;
 
-window.addEventListener("scroll", () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-    loadRandom();
+  try {
+    const item = pickRandom(manifest);
+    if (!item) return;
+
+    const meta = await loadPaperTxt(item.meta, item.id);
+
+    const div = document.createElement("div");
+    div.className = "paper";
+    div.innerHTML = `
+      <h3><a href="paper.html?id=${encodeURIComponent(item.id)}">${meta.title}</a></h3>
+      <div class="meta">구분: ${item.subject || meta.subject}</div>
+      <p style="white-space: pre-wrap;">${meta.abstract}</p>
+      <a href="${item.pdf}" target="_blank" rel="noopener">PDF</a>
+    `;
+    container.appendChild(div);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isLoading = false;
   }
-});
+}
+
+(async () => {
+  try {
+    manifest = await loadManifest();
+
+    // 처음 3개 로드
+    for (let i = 0; i < 3; i++) await loadRandomOnce();
+
+    // 무한 스크롤
+    window.addEventListener("scroll", async () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 120) {
+        await loadRandomOnce();
+      }
+    });
+  } catch (err) {
+    container.innerHTML = `<p>오류: ${err.message}</p>
+      <p>※ 로컬에서 file://로 열면 fetch가 막힙니다. 반드시 로컬 서버로 실행하세요.</p>`;
+    console.error(err);
+  }
+})();
