@@ -1,0 +1,14 @@
+[
+  {
+    "id": "2025-001",
+    "subject": "생명",
+    "meta": "papers/meta data/생명/2025_과학수사에서의 DNA와 RNA 활용.txt",
+    "pdf": "papers/paper/생명/2025_과학수사에서의 DNA와 RNA 활용.pdf"
+  },
+  {
+    "id": "2025-002",
+    "subject": "화학",
+    "meta": "papers/meta data/화학/2025_비타민C의 항산화 작용과 산화환원 반응.txt",
+    "pdf": "papers/paper/화학/2025_비타민C의 항산화 작용과 산화환원 반응.pdf"
+  }
+]
