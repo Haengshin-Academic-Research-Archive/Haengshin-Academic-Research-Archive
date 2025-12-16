@@ -1,1 +1,51 @@
+body {
+  margin: 0;
+  font-family: serif;
+  background: white;
+}
 
+.top-bar {
+  background: #222;
+  color: white;
+  padding: 10px 20px;
+}
+
+.main-bar {
+  background: #b31b1b;
+  color: white;
+  padding: 20px;
+}
+
+.main-bar span {
+  font-size: 0.6em;
+  color: #f0f0f0;
+}
+
+.menu {
+  border-bottom: 1px solid #ccc;
+  padding: 10px 20px;
+}
+
+.menu a {
+  margin-right: 20px;
+  text-decoration: none;
+  color: black;
+}
+
+.content {
+  padding: 20px 40px;
+  max-width: 900px;
+}
+
+section {
+  margin-bottom: 40px;
+}
+
+.paper {
+  margin-bottom: 30px;
+}
+
+.meta {
+  font-size: 0.9em;
+  color: #555;
+}
